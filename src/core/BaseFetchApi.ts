@@ -1,4 +1,4 @@
-import IFetchApi from './IFetchApi';
+import IFetchApi from '../interface/IFetchApi';
 
 /**
  * @abstract class BaseFetchApi - Fetch라이브러리를 구현하는 추상 클래스
