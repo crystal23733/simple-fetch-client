@@ -8,12 +8,27 @@ export default class<T> extends BaseFetchApi<T> {
    * @constructor
    * @param {string} baseUrl - 기본 URL
    * @param {Record<string, string>} defaultHeader - 기본 헤더
+   * @param {number} timeout - 타임아웃
    */
   constructor(
     baseUrl: string,
-    defaultHeader: Record<string, string> = { 'content-type': 'application/json' }
+    defaultHeader: Record<string, string> = { 'content-type': 'application/json' },
+    timeout?: number
   ) {
-    super(baseUrl, defaultHeader);
+    super(baseUrl, defaultHeader, timeout);
+  }
+
+  /**
+   * 타임아웃 설정 메서드
+   * 타임아웃 시간을 설정하고, 타임아웃 시간이 지나면 요청을 취소하는 기능을 구현
+   */
+  private setupTimeout(): void {
+    this.controller = new AbortController();
+    if (this.timeout) {
+      setTimeout(() => {
+        this.abortRequest();
+      }, this.timeout);
+    }
   }
 
   /**
@@ -32,9 +47,9 @@ export default class<T> extends BaseFetchApi<T> {
     header?: object,
     credential?: boolean
   ): Promise<T> {
-    this.abortRequest();
-    const url = new URL(endpoint, this.baseUrl);
+    this.setupTimeout();
 
+    const url = new URL(endpoint, this.baseUrl);
     const options: RequestInit = {
       method,
       headers: { ...this.defaultHeader, ...header },
@@ -54,13 +69,13 @@ export default class<T> extends BaseFetchApi<T> {
       }
       return data as T;
     } catch (error) {
-      if (error instanceof Error && error.message === 'AbortError') {
-        console.error('요청이 취소되었습니다.', error);
-        throw error;
-      } else {
-        console.error('요청 처리 중 에러 발생', error);
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('요청 시간이 초과되었습니다.');
+        }
         throw error;
       }
+      throw new Error('알 수 없는 에러가 발생했습니다.');
     }
   }
 }
