@@ -7,14 +7,22 @@ export default abstract class<T> implements IFetchApi<T> {
   protected baseUrl: string;
   protected defaultHeader: Record<string, string>;
   protected controller?: AbortController;
+  protected timeout?: number;
   /**
    * @constructor
    * @param {string} baseUrl - 기본 URL
    * @param {Record<string, string>} defaultHeader - 기본 헤더
+   * @param {number} timeout - 타임아웃 시간
    */
-  constructor(baseUrl: string, defaultHeader: Record<string, string>) {
+  constructor(baseUrl: string, defaultHeader: Record<string, string>, timeout?: number) {
     this.baseUrl = baseUrl;
     this.defaultHeader = defaultHeader;
+    this.timeout = timeout;
+  }
+
+  // 타임아웃 설정 메서드
+  setTimeout(ms: number): void {
+    this.timeout = ms;
   }
 
   /**
